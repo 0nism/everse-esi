@@ -1,0 +1,14 @@
+{
+  "name": "external-workers",
+  "version": "1.0.0",
+  "description": "Externals camunda workers for everse-platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "author": "Michele Biondi",
+  "license": "MIT",
+  "dependencies": {
+    "camunda-external-task-client-js": "^1.3.1"
+  }
+}

@@ -13,7 +13,6 @@
   </bpmn:collaboration>
   <bpmn:process id="FundingCampaignProcessing" name="FundingCampaignProcessing" isExecutable="true">
     <bpmn:sequenceFlow id="Flow_0jqkhlu" sourceRef="Task_ReviewFundingRequest" targetRef="Gateway_RequestApproved" />
-    <bpmn:sequenceFlow id="Flow_0so90sj" sourceRef="Activity_RegisterAsset" targetRef="Activity_SplitAsset" />
     <bpmn:sequenceFlow id="Flow_0r265w7" sourceRef="StartEvent_NewFundRequest" targetRef="Task_ReviewFundingRequest" />
     <bpmn:sequenceFlow id="SequenceFlow_RequestApprovedNo" name="No" sourceRef="Gateway_RequestApproved" targetRef="EndEvent_RequestRejected">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{!FundingApproved}</bpmn:conditionExpression>
@@ -27,9 +26,7 @@
     <bpmn:sequenceFlow id="Flow_1mb4aly" sourceRef="Gateway_CampaginSuccessful" targetRef="Event_AssetFundingCompleted" />
     <bpmn:sequenceFlow id="Flow_0hpd09p" sourceRef="Activity_SplitAsset" targetRef="Activity_PublishAndRunCampaign" />
     <bpmn:sequenceFlow id="Flow_1ay8jg2" sourceRef="Event_AssetFundingCompleted" targetRef="Event_CampaignSuccessful" />
-    <bpmn:sequenceFlow id="Flow_1ple3no" sourceRef="Activity_NotifyApprovedRequest" targetRef="Activity_RegisterAsset" />
     <bpmn:dataStoreReference id="DataStoreReference_BlockchainCollaboration" name="Blockchain" />
-    <bpmn:dataStoreReference id="DataStoreReference_CreateAssetSchema" name="Asset Schema" />
     <bpmn:intermediateCatchEvent id="Event_CampaignExpired" name="Campaign expired">
       <bpmn:incoming>Flow_0y3zi0z</bpmn:incoming>
       <bpmn:outgoing>Flow_0r0pmq0</bpmn:outgoing>
@@ -42,23 +39,6 @@
       <bpmn:outgoing>Flow_1ay8jg2</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_07b1gr4" messageRef="Message_1j133fl" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:serviceTask id="Activity_SplitAsset" name="Split asset in tokens" camunda:type="external" camunda:topic="Service_SplitAsset">
-      <bpmn:incoming>Flow_0so90sj</bpmn:incoming>
-      <bpmn:outgoing>Flow_0hpd09p</bpmn:outgoing>
-      <bpmn:dataOutputAssociation id="DataOutputAssociation_1g10y04">
-        <bpmn:targetRef>DataStoreReference_BlockchainCollaboration</bpmn:targetRef>
-      </bpmn:dataOutputAssociation>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Activity_RegisterAsset" name="Register asset" camunda:type="external" camunda:topic="Service_RegisterAsset">
-      <bpmn:incoming>Flow_1ple3no</bpmn:incoming>
-      <bpmn:outgoing>Flow_0so90sj</bpmn:outgoing>
-      <bpmn:dataOutputAssociation id="DataOutputAssociation_0jsdd1u">
-        <bpmn:targetRef>DataStoreReference_CreateAssetSchema</bpmn:targetRef>
-      </bpmn:dataOutputAssociation>
-      <bpmn:dataOutputAssociation id="DataOutputAssociation_0nexf0p">
-        <bpmn:targetRef>DataStoreReference_BlockchainCollaboration</bpmn:targetRef>
-      </bpmn:dataOutputAssociation>
-    </bpmn:serviceTask>
     <bpmn:subProcess id="Activity_16mceu9" name="Manage token(s) purchase" triggeredByEvent="true">
       <bpmn:endEvent id="Event_0gc662v">
         <bpmn:incoming>Flow_03emq0d</bpmn:incoming>
@@ -121,6 +101,9 @@
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0hife33">
         <bpmn:targetRef>DataStoreReference_BlockchainCollaboration</bpmn:targetRef>
       </bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0cmvvkk">
+        <bpmn:targetRef>DataStoreReference_CreateAssetSchema</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
     </bpmn:serviceTask>
     <bpmn:eventBasedGateway id="Gateway_CampaginSuccessful" name="Campaign successful?">
       <bpmn:incoming>Flow_1hhv8bj</bpmn:incoming>
@@ -138,7 +121,7 @@
     </bpmn:startEvent>
     <bpmn:sendTask id="Activity_NotifyApprovedRequest" name="Notify approved request" camunda:type="external" camunda:topic="Service_Message_AcceptedRequest">
       <bpmn:incoming>SequenceFlow_RequestApprovedYes</bpmn:incoming>
-      <bpmn:outgoing>Flow_1ple3no</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1vf4kyl</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:userTask id="Task_ReviewFundingRequest" name="Review Funding Request">
       <bpmn:extensionElements>
@@ -154,6 +137,15 @@
       <bpmn:incoming>Flow_0r265w7</bpmn:incoming>
       <bpmn:outgoing>Flow_0jqkhlu</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:dataStoreReference id="DataStoreReference_CreateAssetSchema" name="Asset Schema" />
+    <bpmn:sequenceFlow id="Flow_1vf4kyl" sourceRef="Activity_NotifyApprovedRequest" targetRef="Activity_SplitAsset" />
+    <bpmn:serviceTask id="Activity_SplitAsset" name="Split asset in tokens" camunda:type="external" camunda:topic="Service_SplitAsset">
+      <bpmn:incoming>Flow_1vf4kyl</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hpd09p</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1g10y04">
+        <bpmn:targetRef>DataStoreReference_BlockchainCollaboration</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:message id="Message_1j133fl" name="Message_AssetFundingCompleted" />
   <bpmn:process id="FundingRequest" name="FundingRequest" isExecutable="true">
@@ -230,16 +222,12 @@
       <bpmndi:BPMNShape id="Participant_0wsnchh_di" bpmnElement="Everse" isHorizontal="true">
         <dc:Bounds x="160" y="530" width="2050" height="1230" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1ple3no_di" bpmnElement="Flow_1ple3no">
-        <di:waypoint x="700" y="860" />
-        <di:waypoint x="750" y="860" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ay8jg2_di" bpmnElement="Flow_1ay8jg2">
         <di:waypoint x="1598" y="970" />
         <di:waypoint x="1802" y="970" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0hpd09p_di" bpmnElement="Flow_0hpd09p">
-        <di:waypoint x="1050" y="860" />
+        <di:waypoint x="860" y="860" />
         <di:waypoint x="1160" y="860" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1mb4aly_di" bpmnElement="Flow_1mb4aly">
@@ -280,58 +268,40 @@
         <di:waypoint x="275" y="970" />
         <di:waypoint x="390" y="970" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0so90sj_di" bpmnElement="Flow_0so90sj">
-        <di:waypoint x="850" y="860" />
-        <di:waypoint x="950" y="860" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0jqkhlu_di" bpmnElement="Flow_0jqkhlu">
         <di:waypoint x="490" y="970" />
         <di:waypoint x="525" y="970" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Event_1ew6uge_di" bpmnElement="StartEvent_NewFundRequest">
-        <dc:Bounds x="239" y="952" width="36" height="36" />
+      <bpmndi:BPMNEdge id="Flow_1vf4kyl_di" bpmnElement="Flow_1vf4kyl">
+        <di:waypoint x="700" y="860" />
+        <di:waypoint x="760" y="860" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataStoreReference_0d6px7t_di" bpmnElement="DataStoreReference_BlockchainCollaboration">
+        <dc:Bounds x="1775" y="1285" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="215" y="995" width="84" height="27" />
+          <dc:Bounds x="1773" y="1342" width="54" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1n7bci3_di" bpmnElement="Gateway_RequestApproved" isMarkerVisible="true">
-        <dc:Bounds x="525" y="945" width="50" height="50" />
+      <bpmndi:BPMNShape id="Event_0wz84ex_di" bpmnElement="Event_CampaignExpired">
+        <dc:Bounds x="1472" y="742" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="585" y="956" width="52" height="27" />
+          <dc:Bounds x="1505" y="733" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_16hn4if_di" bpmnElement="Gateway_CampaginSuccessful">
-        <dc:Bounds x="1345" y="835" width="50" height="50" />
+      <bpmndi:BPMNShape id="Event_1b2kz1c_di" bpmnElement="Event_AssetFundingCompleted">
+        <dc:Bounds x="1562" y="952" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1411" y="846" width="58" height="27" />
+          <dc:Bounds x="1547" y="995" width="67" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0p0iw4i_di" bpmnElement="Activity_PublishAndRunCampaign">
-        <dc:Bounds x="1160" y="820" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_188c2yk_di" bpmnElement="Event_CampaignFailed">
-        <dc:Bounds x="1712" y="742" width="36" height="36" />
+      <bpmndi:BPMNShape id="DataStoreReference_1minkes_di" bpmnElement="DataStoreReference_CreateAssetSchema">
+        <dc:Bounds x="1225" y="695" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1690" y="785" width="80" height="14" />
+          <dc:Bounds x="1216" y="673" width="71" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1w4bcja_di" bpmnElement="Event_CampaignSuccessful">
-        <dc:Bounds x="1802" y="952" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1795" y="995" width="54" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_04gpftn_di" bpmnElement="EndEvent_RequestRejected">
-        <dc:Bounds x="862" y="1042" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="838" y="1085" width="84" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1o92938_di" bpmnElement="Activity_NotifyApprovedRequest">
-        <dc:Bounds x="600" y="820" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_17418os_di" bpmnElement="Task_ReviewFundingRequest">
-        <dc:Bounds x="390" y="930" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_0jtnp71_di" bpmnElement="Activity_SplitAsset">
+        <dc:Bounds x="760" y="820" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_11tcai3_di" bpmnElement="Activity_16mceu9" isExpanded="true">
         <dc:Bounds x="250" y="1220" width="960" height="360" />
@@ -398,35 +368,50 @@
           <dc:Bounds x="476" y="1236" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0tsabgm_di" bpmnElement="Activity_RegisterAsset">
-        <dc:Bounds x="750" y="820" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0jtnp71_di" bpmnElement="Activity_SplitAsset">
-        <dc:Bounds x="950" y="820" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1b2kz1c_di" bpmnElement="Event_AssetFundingCompleted">
-        <dc:Bounds x="1562" y="952" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_04gpftn_di" bpmnElement="EndEvent_RequestRejected">
+        <dc:Bounds x="862" y="1042" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1547" y="995" width="67" height="27" />
+          <dc:Bounds x="838" y="1085" width="84" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0wz84ex_di" bpmnElement="Event_CampaignExpired">
-        <dc:Bounds x="1472" y="742" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_1w4bcja_di" bpmnElement="Event_CampaignSuccessful">
+        <dc:Bounds x="1802" y="952" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1505" y="733" width="90" height="14" />
+          <dc:Bounds x="1795" y="995" width="54" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="DataStoreReference_1minkes_di" bpmnElement="DataStoreReference_CreateAssetSchema">
-        <dc:Bounds x="705" y="695" width="50" height="50" />
+      <bpmndi:BPMNShape id="Event_188c2yk_di" bpmnElement="Event_CampaignFailed">
+        <dc:Bounds x="1712" y="742" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="696" y="673" width="71" height="14" />
+          <dc:Bounds x="1690" y="785" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="DataStoreReference_0d6px7t_di" bpmnElement="DataStoreReference_BlockchainCollaboration">
-        <dc:Bounds x="1775" y="1285" width="50" height="50" />
+      <bpmndi:BPMNShape id="Activity_0p0iw4i_di" bpmnElement="Activity_PublishAndRunCampaign">
+        <dc:Bounds x="1160" y="820" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_16hn4if_di" bpmnElement="Gateway_CampaginSuccessful">
+        <dc:Bounds x="1345" y="835" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1773" y="1342" width="54" height="14" />
+          <dc:Bounds x="1411" y="846" width="58" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1n7bci3_di" bpmnElement="Gateway_RequestApproved" isMarkerVisible="true">
+        <dc:Bounds x="525" y="945" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="585" y="956" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ew6uge_di" bpmnElement="StartEvent_NewFundRequest">
+        <dc:Bounds x="239" y="952" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="215" y="995" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1o92938_di" bpmnElement="Activity_NotifyApprovedRequest">
+        <dc:Bounds x="600" y="820" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17418os_di" bpmnElement="Task_ReviewFundingRequest">
+        <dc:Bounds x="390" y="930" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_04z2l1i_di" bpmnElement="PublicEntity" isHorizontal="true">
         <dc:Bounds x="160" y="80" width="2050" height="290" />
@@ -490,58 +475,10 @@
         <di:waypoint x="268" y="210" />
         <di:waypoint x="370" y="210" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Event_00847gg_di" bpmnElement="Event_FundingRequestCreated">
-        <dc:Bounds x="232" y="192" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_0ycpc08_di" bpmnElement="Event_ReceivedRequestRefusal">
+        <dc:Bounds x="862" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="208" y="235" width="84" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0vdxk4q_di" bpmnElement="Activity_SendFundingRequest">
-        <dc:Bounds x="370" y="170" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1o1gwsj_di" bpmnElement="Gateway_RequestAccepted">
-        <dc:Bounds x="575" y="185" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="634" y="200" width="51" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0xplyc4_di" bpmnElement="Event_ReceivedRequestAcceptance">
-        <dc:Bounds x="692" y="132" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="667" y="102" width="90" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0n710oz_di" bpmnElement="Activity_WaitCampaignResult">
-        <dc:Bounds x="800" y="110" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1vgfwor_di" bpmnElement="Gateway_FundingSuccess">
-        <dc:Bounds x="975" y="125" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="977" y="95" width="48" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0rdpm83_di" bpmnElement="Event_ReceivedCampaignFailed">
-        <dc:Bounds x="1092" y="202" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1072" y="172" width="80" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_14na8of_di" bpmnElement="Event_14na8of">
-        <dc:Bounds x="1202" y="202" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1186" y="245" width="70" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1cnvy2j_di" bpmnElement="Event_CampaignSucceded">
-        <dc:Bounds x="1282" y="132" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1273" y="102" width="56" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0s0ej8o_di" bpmnElement="Event_FundingSuccesful">
-        <dc:Bounds x="1422" y="132" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1416" y="175" width="48" height="27" />
+          <dc:Bounds x="838" y="232" width="85" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0owga3s_di" bpmnElement="Event_0owga3s">
@@ -550,18 +487,66 @@
           <dc:Bounds x="969" y="305" width="84" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0ycpc08_di" bpmnElement="Event_ReceivedRequestRefusal">
-        <dc:Bounds x="862" y="262" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_0s0ej8o_di" bpmnElement="Event_FundingSuccesful">
+        <dc:Bounds x="1422" y="132" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="838" y="232" width="85" height="14" />
+          <dc:Bounds x="1416" y="175" width="48" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1cnvy2j_di" bpmnElement="Event_CampaignSucceded">
+        <dc:Bounds x="1282" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1273" y="102" width="56" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14na8of_di" bpmnElement="Event_14na8of">
+        <dc:Bounds x="1202" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1186" y="245" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0rdpm83_di" bpmnElement="Event_ReceivedCampaignFailed">
+        <dc:Bounds x="1092" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1072" y="172" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1vgfwor_di" bpmnElement="Gateway_FundingSuccess">
+        <dc:Bounds x="975" y="125" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="977" y="95" width="48" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0n710oz_di" bpmnElement="Activity_WaitCampaignResult">
+        <dc:Bounds x="800" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0xplyc4_di" bpmnElement="Event_ReceivedRequestAcceptance">
+        <dc:Bounds x="692" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="667" y="102" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1o1gwsj_di" bpmnElement="Gateway_RequestAccepted">
+        <dc:Bounds x="575" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="634" y="200" width="51" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vdxk4q_di" bpmnElement="Activity_SendFundingRequest">
+        <dc:Bounds x="370" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_00847gg_di" bpmnElement="Event_FundingRequestCreated">
+        <dc:Bounds x="232" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="208" y="235" width="84" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_0u3rnvj_di" bpmnElement="Participant_Investor" isHorizontal="true">
         <dc:Bounds x="160" y="1880" width="2050" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_0hife33_di" bpmnElement="DataOutputAssociation_0hife33">
-        <di:waypoint x="1258" y="896" />
-        <di:waypoint x="1778" y="1285" />
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1g10y04_di" bpmnElement="DataOutputAssociation_1g10y04">
+        <di:waypoint x="860" y="883" />
+        <di:waypoint x="1775" y="1299" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataOutputAssociation_0hlowxi_di" bpmnElement="DataOutputAssociation_0hlowxi">
         <di:waypoint x="515" y="1390" />
@@ -571,17 +556,9 @@
         <di:waypoint x="560" y="1426" />
         <di:waypoint x="1775" y="1317" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_0jsdd1u_di" bpmnElement="DataOutputAssociation_0jsdd1u">
-        <di:waypoint x="779" y="820" />
-        <di:waypoint x="740" y="745" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_0nexf0p_di" bpmnElement="DataOutputAssociation_0nexf0p">
-        <di:waypoint x="850" y="883" />
-        <di:waypoint x="1775" y="1306" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_1g10y04_di" bpmnElement="DataOutputAssociation_1g10y04">
-        <di:waypoint x="1050" y="888" />
-        <di:waypoint x="1775" y="1296" />
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0hife33_di" bpmnElement="DataOutputAssociation_0hife33">
+        <di:waypoint x="1258" y="896" />
+        <di:waypoint x="1778" y="1285" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1u7k3dv_di" bpmnElement="Flow_1u7k3dv">
         <di:waypoint x="310" y="1880" />
@@ -614,6 +591,10 @@
         <di:waypoint x="1820" y="420" />
         <di:waypoint x="1300" y="420" />
         <di:waypoint x="1300" y="168" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0cmvvkk_di" bpmnElement="DataOutputAssociation_0cmvvkk">
+        <di:waypoint x="1220" y="820" />
+        <di:waypoint x="1240" y="745" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
