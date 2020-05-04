@@ -19,3 +19,9 @@ client.subscribe('Service_SplitAsset', async function ({ task, taskService }) {
 
     await taskService.complete(task, processVariables);
 });
+
+client.subscribe('Service_PublishAndRunCampaign', async function ({ task, taskService }) {
+    console.log(`Add asset to database: amount: ${task.variables.get('amount')}, tokenprice: ${task.variables.get('tokenPrice')} ,3 tokens`);
+
+    await taskService.complete(task);
+});
