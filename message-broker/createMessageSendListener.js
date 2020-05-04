@@ -6,21 +6,24 @@ const rest_endpoint = process.env.REST_ENDPOINT || 'rest';
 
 const config = { baseUrl: `http://${camunda_endpoint}:8080/${rest_endpoint}`, use: logger };
 
-exports.createMessageSendHandler = (topic, messageName) => {
+exports.createMessageSendHandler = (topic, messageName, variables = []) => {
     const client = new Client(config);
+
 
     client.subscribe(topic, async function ({ task, taskService }) {
         const key = task.businessKey;
+        console.log(task.variables.getTyped('amount'));
+
+        const processVariables = {};
+        variables.forEach((variable) => {
+            processVariables[variable] = task.variables.getTyped(variable);
+        });
+        console.log(processVariables);
 
         const requestBody = {
             messageName: messageName,
             businessKey: key,
-            processVariables: {
-                amount: {
-                    value: task.variables.get('amount'),
-                    type: "Double"
-                }
-            }
+            processVariables: processVariables,
         }
 
         try {
