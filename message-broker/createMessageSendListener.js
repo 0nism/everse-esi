@@ -38,7 +38,7 @@ exports.createMessageSendHandler = (topic, messageName, variables = [], correlat
 
         try {
             await axios.post(`http://${camunda_endpoint}:8080/${rest_endpoint}/message`, requestBody);
-            console.log(`Succesfully sent Message_FundingRequestReceived message`);
+            console.log(`Succesfully sent ${messageName} message`);
         } catch (error) {
             console.log(error);
         }
