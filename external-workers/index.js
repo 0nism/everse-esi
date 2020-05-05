@@ -1,5 +1,10 @@
 const { Client, Variables, logger } = require("camunda-external-task-client-js");
 
+/* DATABASE */
+const Datastore = require('nedb');
+const db = new Datastore();
+
+/* WORKERS */
 const camunda_endpoint = process.env.CAMUNDA_ENDPOINT || 'localhost';
 const rest_endpoint = process.env.REST_ENDPOINT || 'rest';
 
@@ -21,7 +26,17 @@ client.subscribe('Service_SplitAsset', async function ({ task, taskService }) {
 });
 
 client.subscribe('Service_PublishAndRunCampaign', async function ({ task, taskService }) {
-    console.log(`Add asset to database: amount: ${task.variables.get('amount')}, tokenprice: ${task.variables.get('tokenPrice')} ,3 tokens`);
-
-    await taskService.complete(task);
+    const document = {
+        assetName: task.variables.get('assetName'),
+        amount: task.variables.get('amount'),
+        tokenPrice: task.variables.get('tokenPrice'),
+        nTokens: 3,
+    }
+    db.insert(document, async function (err, newDoc) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        await taskService.complete(task);
+    });
 });
