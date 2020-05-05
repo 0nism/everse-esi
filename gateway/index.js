@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 
 /* DATABASE */
 const Datastore = require('nedb');
@@ -26,10 +27,13 @@ app.post('/request', async (req, res) => {
     const request = req.body;
     const startProcessUrl = 'http://localhost:8080/rest/process-definition/key/FundingRequest/start';
 
+    const businessKey = uuidv4();
+    const requestCorrelationId = uuidv4();
+
     const startEventBody = {
         variables: {
             requestCorrelationId: {
-                value: "req-1",
+                value: requestCorrelationId,
                 type: "String"
             },
             amount: {
@@ -41,7 +45,7 @@ app.post('/request', async (req, res) => {
                 type: "String"
             }
         },
-        businessKey: 'biz-1',
+        businessKey: businessKey,
     };
 
 
