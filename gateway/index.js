@@ -11,5 +11,8 @@ app.get('/assets', (req, res) => {
 
 app.post('/request', (req, res) => {
     res.sendStatus(501);
-})
+});
 
+app.listen(3001, () => {
+    console.log('Gateway listening on port 3001');
+});
