@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const axios = require('axios');
 
 /* DATABASE */
 const Datastore = require('nedb');
@@ -21,8 +22,36 @@ app.get('/assets', (req, res) => {
     });
 });
 
-app.post('/request', (req, res) => {
-    res.sendStatus(501);
+app.post('/request', async (req, res) => {
+    const request = req.body;
+    const startProcessUrl = 'http://localhost:8080/rest/process-definition/key/FundingRequest/start';
+
+    const startEventBody = {
+        variables: {
+            requestCorrelationId: {
+                value: "req-1",
+                type: "String"
+            },
+            amount: {
+                value: request.amount,
+                type: "Double"
+            },
+            assetName: {
+                value: request.assetName,
+                type: "String"
+            }
+        },
+        businessKey: 'biz-1',
+    };
+
+
+    try {
+        const response = await axios.post(startProcessUrl, startEventBody);
+        return res.sendStatus(200);
+    } catch (err) {
+        console.log(err);
+        return res.sendStatus(400);
+    }
 });
 
 app.listen(3001, () => {
