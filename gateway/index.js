@@ -1,12 +1,24 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
+/* DATABASE */
+const Datastore = require('nedb');
+
+/* WEB SERVICE */
 const app = express();
 
 app.use(bodyParser.json());
 
 app.get('/assets', (req, res) => {
-    res.sendStatus(501);
+    const db = new Datastore({ filename: __dirname + '/../assets.db', autoload: true });
+
+    db.find({}, (err, documents) => {
+        if (err) {
+            return res.sendStatus(500);
+        }
+
+        return res.send(documents);
+    });
 });
 
 app.post('/request', (req, res) => {
