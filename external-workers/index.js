@@ -2,7 +2,7 @@ const { Client, Variables, logger } = require("camunda-external-task-client-js")
 
 /* DATABASE */
 const Datastore = require('nedb');
-const db = new Datastore();
+const db = new Datastore({ filename: __dirname + '/../assets.db', autoload: true });
 
 /* WORKERS */
 const camunda_endpoint = process.env.CAMUNDA_ENDPOINT || 'localhost';
@@ -29,8 +29,11 @@ client.subscribe('Service_PublishAndRunCampaign', async function ({ task, taskSe
     const document = {
         assetName: task.variables.get('assetName'),
         amount: task.variables.get('amount'),
-        tokenPrice: task.variables.get('tokenPrice'),
         nTokens: 3,
+        tokenPrice: task.variables.get('tokenPrice'),
+        businessKey: task.businessKey,
+        requestCorrelationId: task.variables.get('requestCorrelationId'),
+
     }
     db.insert(document, async function (err, newDoc) {
         if (err) {
