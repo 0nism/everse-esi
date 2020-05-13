@@ -43,3 +43,27 @@ client.subscribe('Service_PublishAndRunCampaign', async function ({ task, taskSe
         await taskService.complete(task);
     });
 });
+
+client.subscribe('Service_RegisterPurchase', async function ({ task, taskService }) {
+    const assetId = task.variables.get('assetId');
+    const buyer = task.variables.get('buyer');
+    const quantity = task.variables.get('quantity');
+
+    db.findOne({ _id: assetId }, async (err, asset) => {
+        if (err) {
+            console.log('error');
+        }
+        console.log(asset);
+        if (asset.nTokens >= quantity) {
+            const newTokens = asset.nTokens - quantity;
+            db.update({ _id: assetId }, { ...asset, nTokens: newTokens }, {}, async (err, result) => {
+                console.log(`Token remaining: ${newTokens}`);
+                const processVariables = new Variables();
+                processVariables.set('tokensRemaining', newTokens !== 0);
+                await taskService.complete(task, processVariables);
+            });
+        } else {
+            console.log('cannot buy tokens anymore');
+        }
+    });
+});

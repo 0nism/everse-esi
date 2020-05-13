@@ -23,6 +23,42 @@ app.get('/assets', (req, res) => {
     });
 });
 
+app.post('/tokens', async (req, res) => {
+    const buyTokensMessageUrl = 'http://localhost:8080/rest/message';
+    const data = req.body;
+    const message = {
+        messageName: "Message_TokenPurchase",
+        businessKey: data.businessKey,
+        correlationKeys: {
+            "requestCorrelationId": {
+                "value": data.requestCorrelationId,
+                "type": "String"
+            }
+        },
+        processVariables: {
+            quantity: {
+                value: data.quantity,
+                type: "Integer"
+            },
+            buyer: {
+                value: data.buyer,
+                type: "String"
+            },
+            assetId: {
+                value: data.assetId,
+                type: "String"
+            }
+        }
+    };
+    try {
+        await axios.post(buyTokensMessageUrl, message);
+        res.sendStatus(200);
+    } catch (err) {
+        console.log(err);
+        res.sendStatus(500);
+    }
+});
+
 app.post('/request', async (req, res) => {
     const request = req.body;
     const startProcessUrl = 'http://localhost:8080/rest/process-definition/key/FundingRequest/start';
@@ -50,13 +86,15 @@ app.post('/request', async (req, res) => {
 
 
     try {
-        const response = await axios.post(startProcessUrl, startEventBody);
+        await axios.post(startProcessUrl, startEventBody);
         return res.sendStatus(200);
     } catch (err) {
         console.log(err);
         return res.sendStatus(400);
     }
 });
+
+
 
 app.listen(3001, () => {
     console.log('Gateway listening on port 3001');

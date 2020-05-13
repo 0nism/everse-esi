@@ -4,12 +4,14 @@
     <bpmn:participant id="Everse" name="EversePlatform" processRef="FundingCampaignProcessing" />
     <bpmn:participant id="PublicEntity" name="PublicEntity" processRef="FundingRequest" />
     <bpmn:participant id="Participant_Investor" name="Investor" />
-    <bpmn:messageFlow id="Flow_1u7k3dv" sourceRef="Participant_Investor" targetRef="Event_05k2opj" />
+    <bpmn:participant id="TokenSell" name="EversePlatformTokenSale" processRef="TokenSaleProcessing" />
     <bpmn:messageFlow id="Flow_1yam03j" sourceRef="Activity_SendFundingRequest" targetRef="StartEvent_NewFundRequest" />
     <bpmn:messageFlow id="Flow_1gqsosm" sourceRef="EndEvent_RequestRejected" targetRef="Event_ReceivedRequestRefusal" />
     <bpmn:messageFlow id="Flow_1u6hy1i" sourceRef="Activity_NotifyApprovedRequest" targetRef="Event_ReceivedRequestAcceptance" />
     <bpmn:messageFlow id="Flow_0tz73al" sourceRef="Event_CampaignFailed" targetRef="Event_ReceivedCampaignFailed" />
     <bpmn:messageFlow id="Flow_06ayk9k" sourceRef="Event_CampaignSuccessful" targetRef="Event_CampaignSucceded" />
+    <bpmn:messageFlow id="Flow_13cxvj9" sourceRef="Activity_NotifyAssetFundingCompletion" targetRef="Event_AssetFundingCompleted" />
+    <bpmn:messageFlow id="Flow_0dkcey9" sourceRef="Participant_Investor" targetRef="Event_05k2opj" />
   </bpmn:collaboration>
   <bpmn:process id="FundingCampaignProcessing" name="FundingCampaignProcessing" isExecutable="true">
     <bpmn:sequenceFlow id="Flow_0jqkhlu" sourceRef="Task_ReviewFundingRequest" targetRef="Gateway_RequestApproved" />
@@ -39,50 +41,6 @@
       <bpmn:outgoing>Flow_1ay8jg2</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_07b1gr4" messageRef="Message_1j133fl" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:subProcess id="Activity_16mceu9" name="Manage token(s) purchase" triggeredByEvent="true">
-      <bpmn:endEvent id="Event_0gc662v">
-        <bpmn:incoming>Flow_03emq0d</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:exclusiveGateway id="Gateway_07oina7" name="Tokens remaining?">
-        <bpmn:incoming>Flow_0t8uk4h</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_TokensRemaining</bpmn:outgoing>
-        <bpmn:outgoing>SequenceFlow_NoTokensRemaining</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:exclusiveGateway id="Gateway_1j427vb">
-        <bpmn:incoming>SequenceFlow_TokensRemaining</bpmn:incoming>
-        <bpmn:incoming>Flow_0btpxv6</bpmn:incoming>
-        <bpmn:outgoing>Flow_03emq0d</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:sendTask id="Activity_NotifyAssetFundingCompletion" name="Notify asset funding completion" camunda:type="external" camunda:topic="Service_Message_AssetFundingCompleted">
-        <bpmn:incoming>SequenceFlow_NoTokensRemaining</bpmn:incoming>
-        <bpmn:outgoing>Flow_0btpxv6</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="Flow_0btpxv6" sourceRef="Activity_NotifyAssetFundingCompletion" targetRef="Gateway_1j427vb" />
-      <bpmn:sequenceFlow id="SequenceFlow_NoTokensRemaining" name="No" sourceRef="Gateway_07oina7" targetRef="Activity_NotifyAssetFundingCompletion">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!tokensRemaining}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="Flow_03emq0d" sourceRef="Gateway_1j427vb" targetRef="Event_0gc662v" />
-      <bpmn:sequenceFlow id="SequenceFlow_TokensRemaining" name="Yes" sourceRef="Gateway_07oina7" targetRef="Gateway_1j427vb">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${tokensRemaining}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="Flow_1utziqp" sourceRef="Event_05k2opj" targetRef="Activity_RegisterPurchase" />
-      <bpmn:startEvent id="Event_05k2opj" name="Token purchase">
-        <bpmn:outgoing>Flow_1utziqp</bpmn:outgoing>
-        <bpmn:messageEventDefinition id="MessageEventDefinition_1l4x91l" messageRef="Message_1mp1zyu" />
-      </bpmn:startEvent>
-      <bpmn:serviceTask id="Activity_RegisterPurchase" name="Register purchase" camunda:type="external" camunda:topic="Service_RegisterPurchase">
-        <bpmn:incoming>Flow_1utziqp</bpmn:incoming>
-        <bpmn:outgoing>Flow_0t8uk4h</bpmn:outgoing>
-        <bpmn:dataOutputAssociation id="DataOutputAssociation_0hlowxi">
-          <bpmn:targetRef>DataStoreReference_TokenPurchase</bpmn:targetRef>
-        </bpmn:dataOutputAssociation>
-        <bpmn:dataOutputAssociation id="DataOutputAssociation_0ky6ifx">
-          <bpmn:targetRef>DataStoreReference_BlockchainCollaboration</bpmn:targetRef>
-        </bpmn:dataOutputAssociation>
-      </bpmn:serviceTask>
-      <bpmn:sequenceFlow id="Flow_0t8uk4h" sourceRef="Activity_RegisterPurchase" targetRef="Gateway_07oina7" />
-      <bpmn:dataStoreReference id="DataStoreReference_TokenPurchase" name="Purchase Schema" />
-    </bpmn:subProcess>
     <bpmn:endEvent id="EndEvent_RequestRejected" name="Rejected request">
       <bpmn:incoming>SequenceFlow_RequestApprovedNo</bpmn:incoming>
       <bpmn:messageEventDefinition id="MessageEventDefinition_065ex4r" messageRef="Message_0jm4oc7" camunda:type="external" camunda:topic="Service_Message_RefusedRequest" />
@@ -222,21 +180,65 @@
   <bpmn:message id="Message_0jm4oc7" name="Message_RefusedRequest" />
   <bpmn:message id="Message_1n4bhuc" name="Message_CampaignFailed" />
   <bpmn:message id="Message_1v9l304" name="Message_CampaignSucceeded" />
+  <bpmn:process id="TokenSaleProcessing" name="TokenSaleProcessing" isExecutable="true">
+    <bpmn:dataStoreReference id="DataStoreReference_TokenPurchase" name="Purchase Schema" />
+    <bpmn:sequenceFlow id="Flow_0t8uk4h" sourceRef="Activity_RegisterPurchase" targetRef="Gateway_07oina7" />
+    <bpmn:sequenceFlow id="Flow_1utziqp" sourceRef="Event_05k2opj" targetRef="Activity_RegisterPurchase" />
+    <bpmn:exclusiveGateway id="Gateway_07oina7" name="Tokens remaining?">
+      <bpmn:incoming>Flow_0t8uk4h</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_TokensRemaining</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_NoTokensRemaining</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_1j427vb">
+      <bpmn:incoming>SequenceFlow_TokensRemaining</bpmn:incoming>
+      <bpmn:incoming>Flow_0btpxv6</bpmn:incoming>
+      <bpmn:outgoing>Flow_03emq0d</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_NotifyAssetFundingCompletion" name="Notify asset funding completion" camunda:type="external" camunda:topic="Service_Message_AssetFundingCompleted">
+      <bpmn:incoming>SequenceFlow_NoTokensRemaining</bpmn:incoming>
+      <bpmn:outgoing>Flow_0btpxv6</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_03emq0d" sourceRef="Gateway_1j427vb" targetRef="Event_0gc662v" />
+    <bpmn:sequenceFlow id="SequenceFlow_TokensRemaining" name="Yes" sourceRef="Gateway_07oina7" targetRef="Gateway_1j427vb">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${tokensRemaining}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_NoTokensRemaining" name="No" sourceRef="Gateway_07oina7" targetRef="Activity_NotifyAssetFundingCompletion">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!tokensRemaining}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0btpxv6" sourceRef="Activity_NotifyAssetFundingCompletion" targetRef="Gateway_1j427vb" />
+    <bpmn:serviceTask id="Activity_RegisterPurchase" name="Register purchase" camunda:type="external" camunda:topic="Service_RegisterPurchase">
+      <bpmn:incoming>Flow_1utziqp</bpmn:incoming>
+      <bpmn:outgoing>Flow_0t8uk4h</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0hlowxi">
+        <bpmn:targetRef>DataStoreReference_TokenPurchase</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0ky6ifx">
+        <bpmn:targetRef>DataStoreReference_BlockchainCollaboration</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="Event_05k2opj" name="Token purchase">
+      <bpmn:outgoing>Flow_1utziqp</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1l4x91l" messageRef="Message_1mp1zyu" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_0gc662v">
+      <bpmn:incoming>Flow_03emq0d</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_AssetFunding">
       <bpmndi:BPMNShape id="Participant_0wsnchh_di" bpmnElement="Everse" isHorizontal="true">
-        <dc:Bounds x="160" y="530" width="2050" height="1230" />
+        <dc:Bounds x="160" y="530" width="2050" height="850" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1vf4kyl_di" bpmnElement="Flow_1vf4kyl">
         <di:waypoint x="700" y="860" />
-        <di:waypoint x="760" y="860" />
+        <di:waypoint x="1000" y="860" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ay8jg2_di" bpmnElement="Flow_1ay8jg2">
         <di:waypoint x="1598" y="970" />
         <di:waypoint x="1802" y="970" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0hpd09p_di" bpmnElement="Flow_0hpd09p">
-        <di:waypoint x="860" y="860" />
+        <di:waypoint x="1100" y="860" />
         <di:waypoint x="1160" y="860" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1mb4aly_di" bpmnElement="Flow_1mb4aly">
@@ -281,12 +283,6 @@
         <di:waypoint x="490" y="970" />
         <di:waypoint x="525" y="970" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="DataStoreReference_0d6px7t_di" bpmnElement="DataStoreReference_BlockchainCollaboration">
-        <dc:Bounds x="1775" y="1285" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1773" y="1342" width="54" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0wz84ex_di" bpmnElement="Event_CampaignExpired">
         <dc:Bounds x="1472" y="742" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -296,72 +292,7 @@
       <bpmndi:BPMNShape id="Event_1b2kz1c_di" bpmnElement="Event_AssetFundingCompleted">
         <dc:Bounds x="1562" y="952" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1547" y="995" width="67" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_11tcai3_di" bpmnElement="Activity_16mceu9" isExpanded="true">
-        <dc:Bounds x="250" y="1220" width="960" height="360" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0t8uk4h_di" bpmnElement="Flow_0t8uk4h">
-        <di:waypoint x="560" y="1430" />
-        <di:waypoint x="695" y="1430" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1utziqp_di" bpmnElement="Flow_1utziqp">
-        <di:waypoint x="328" y="1430" />
-        <di:waypoint x="460" y="1430" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0lny86l_di" bpmnElement="SequenceFlow_TokensRemaining">
-        <di:waypoint x="745" y="1430" />
-        <di:waypoint x="965" y="1430" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="847" y="1412" width="18" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_03emq0d_di" bpmnElement="Flow_03emq0d">
-        <di:waypoint x="1015" y="1430" />
-        <di:waypoint x="1142" y="1430" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0yntb2a_di" bpmnElement="SequenceFlow_NoTokensRemaining">
-        <di:waypoint x="720" y="1405" />
-        <di:waypoint x="720" y="1300" />
-        <di:waypoint x="810" y="1300" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="728" y="1350" width="15" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0btpxv6_di" bpmnElement="Flow_0btpxv6">
-        <di:waypoint x="910" y="1300" />
-        <di:waypoint x="990" y="1300" />
-        <di:waypoint x="990" y="1405" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Event_0gc662v_di" bpmnElement="Event_0gc662v">
-        <dc:Bounds x="1142" y="1412" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_07oina7_di" bpmnElement="Gateway_07oina7" isMarkerVisible="true">
-        <dc:Bounds x="695" y="1405" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="693" y="1462" width="55" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1j427vb_di" bpmnElement="Gateway_1j427vb" isMarkerVisible="true">
-        <dc:Bounds x="965" y="1405" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1syza2i_di" bpmnElement="Activity_NotifyAssetFundingCompletion">
-        <dc:Bounds x="810" y="1260" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_15ww8uc_di" bpmnElement="Event_05k2opj">
-        <dc:Bounds x="292" y="1412" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="271" y="1388" width="78" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_16010kc_di" bpmnElement="Activity_RegisterPurchase">
-        <dc:Bounds x="460" y="1390" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="DataStoreReference_1i723kn_di" bpmnElement="DataStoreReference_TokenPurchase">
-        <dc:Bounds x="495" y="1275" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="476" y="1236" width="90" height="14" />
+          <dc:Bounds x="1546" y="914.5" width="67" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_04gpftn_di" bpmnElement="EndEvent_RequestRejected">
@@ -416,7 +347,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0jtnp71_di" bpmnElement="Activity_SplitAsset">
-        <dc:Bounds x="760" y="820" width="100" height="80" />
+        <dc:Bounds x="1000" y="820" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_04z2l1i_di" bpmnElement="PublicEntity" isHorizontal="true">
         <dc:Bounds x="160" y="80" width="2050" height="290" />
@@ -546,33 +477,98 @@
           <dc:Bounds x="208" y="235" width="84" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Participant_0u3rnvj_di" bpmnElement="Participant_Investor" isHorizontal="true">
-        <dc:Bounds x="160" y="1880" width="2050" height="60" />
+      <bpmndi:BPMNShape id="Participant_0kkeyi1_di" bpmnElement="TokenSell" isHorizontal="true">
+        <dc:Bounds x="160" y="1600" width="2050" height="320" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_0hlowxi_di" bpmnElement="DataOutputAssociation_0hlowxi">
-        <di:waypoint x="515" y="1390" />
-        <di:waypoint x="520" y="1330" />
+      <bpmndi:BPMNEdge id="Flow_0t8uk4h_di" bpmnElement="Flow_0t8uk4h">
+        <di:waypoint x="640" y="1810" />
+        <di:waypoint x="775" y="1810" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1utziqp_di" bpmnElement="Flow_1utziqp">
+        <di:waypoint x="296" y="1810" />
+        <di:waypoint x="540" y="1810" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03emq0d_di" bpmnElement="Flow_03emq0d">
+        <di:waypoint x="1095" y="1810" />
+        <di:waypoint x="1222" y="1810" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0lny86l_di" bpmnElement="SequenceFlow_TokensRemaining">
+        <di:waypoint x="825" y="1810" />
+        <di:waypoint x="1045" y="1810" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="927" y="1792" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yntb2a_di" bpmnElement="SequenceFlow_NoTokensRemaining">
+        <di:waypoint x="800" y="1785" />
+        <di:waypoint x="800" y="1680" />
+        <di:waypoint x="890" y="1680" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="808" y="1730" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0btpxv6_di" bpmnElement="Flow_0btpxv6">
+        <di:waypoint x="990" y="1680" />
+        <di:waypoint x="1070" y="1680" />
+        <di:waypoint x="1070" y="1785" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataStoreReference_1i723kn_di" bpmnElement="DataStoreReference_TokenPurchase">
+        <dc:Bounds x="463" y="1675" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="444" y="1636" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_07oina7_di" bpmnElement="Gateway_07oina7" isMarkerVisible="true">
+        <dc:Bounds x="775" y="1785" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="773" y="1842" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1j427vb_di" bpmnElement="Gateway_1j427vb" isMarkerVisible="true">
+        <dc:Bounds x="1045" y="1785" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1syza2i_di" bpmnElement="Activity_NotifyAssetFundingCompletion">
+        <dc:Bounds x="890" y="1640" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16010kc_di" bpmnElement="Activity_RegisterPurchase">
+        <dc:Bounds x="540" y="1770" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15ww8uc_di" bpmnElement="Event_05k2opj">
+        <dc:Bounds x="260" y="1792" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="239" y="1768" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ud95p2_di" bpmnElement="Event_0gc662v">
+        <dc:Bounds x="1222" y="1792" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_0u3rnvj_di" bpmnElement="Participant_Investor" isHorizontal="true">
+        <dc:Bounds x="160" y="2050" width="2050" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_0d6px7t_di" bpmnElement="DataStoreReference_BlockchainCollaboration">
+        <dc:Bounds x="2325" y="1195" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2323" y="1252" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="DataOutputAssociation_0ky6ifx_di" bpmnElement="DataOutputAssociation_0ky6ifx">
-        <di:waypoint x="560" y="1426" />
-        <di:waypoint x="1775" y="1317" />
+        <di:waypoint x="619" y="1770" />
+        <di:waypoint x="820" y="1490" />
+        <di:waypoint x="2325" y="1229" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataOutputAssociation_0hife33_di" bpmnElement="DataOutputAssociation_0hife33">
-        <di:waypoint x="1258" y="896" />
-        <di:waypoint x="1778" y="1285" />
+        <di:waypoint x="1237" y="900" />
+        <di:waypoint x="1360" y="1080" />
+        <di:waypoint x="2325" y="1208" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataOutputAssociation_0cmvvkk_di" bpmnElement="DataOutputAssociation_0cmvvkk">
         <di:waypoint x="1220" y="820" />
         <di:waypoint x="1240" y="745" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataOutputAssociation_1g10y04_di" bpmnElement="DataOutputAssociation_1g10y04">
-        <di:waypoint x="860" y="882" />
-        <di:waypoint x="1290" y="1070" />
-        <di:waypoint x="1775" y="1298" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1u7k3dv_di" bpmnElement="Flow_1u7k3dv">
-        <di:waypoint x="310" y="1880" />
-        <di:waypoint x="310" y="1448" />
+        <di:waypoint x="1072" y="900" />
+        <di:waypoint x="1210" y="1150" />
+        <di:waypoint x="2325" y="1218" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1yam03j_di" bpmnElement="Flow_1yam03j">
         <di:waypoint x="420" y="250" />
@@ -601,6 +597,20 @@
         <di:waypoint x="1820" y="420" />
         <di:waypoint x="1300" y="420" />
         <di:waypoint x="1300" y="168" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0hlowxi_di" bpmnElement="DataOutputAssociation_0hlowxi">
+        <di:waypoint x="556" y="1770" />
+        <di:waypoint x="513" y="1724" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13cxvj9_di" bpmnElement="Flow_13cxvj9">
+        <di:waypoint x="940" y="1640" />
+        <di:waypoint x="940" y="1314" />
+        <di:waypoint x="1580" y="1314" />
+        <di:waypoint x="1580" y="988" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dkcey9_di" bpmnElement="Flow_0dkcey9">
+        <di:waypoint x="278" y="2050" />
+        <di:waypoint x="278" y="1828" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
