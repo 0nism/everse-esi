@@ -47,6 +47,10 @@ app.post('/tokens', async (req, res) => {
             assetId: {
                 value: data.assetId,
                 type: "String"
+            },
+            requestCorrelationId: {
+                value: data.requestCorrelationId,
+                type: "String"
             }
         }
     };

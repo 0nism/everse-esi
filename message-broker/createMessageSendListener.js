@@ -11,38 +11,41 @@ exports.createMessageSendHandler = (topic, messageName, variables = [], correlat
 
 
     client.subscribe(topic, async function ({ task, taskService }) {
-        const key = task.businessKey;
-
-        const processVariables = {};
-
-        variables.forEach((variable) => {
-            processVariables[variable] = task.variables.getTyped(variable);
-        });
-
-        const correlationKeys = {};
-
-        correlationVariables.forEach((variable) => {
-            const { valueInfo, ...correlationKey } = task.variables.getTyped(variable);
-            correlationKeys[variable] = correlationKey;
-        });
-
-        console.log(processVariables);
-        console.log(correlationKeys);
-
-        const requestBody = {
-            messageName: messageName,
-            businessKey: key,
-            processVariables: processVariables,
-            correlationKeys: correlationKeys,
-        };
-
         try {
+            console.log('Received request');
+            const key = task.businessKey;
+            console.log(key);
+
+            const processVariables = {};
+
+            variables.forEach((variable) => {
+                processVariables[variable] = task.variables.getTyped(variable);
+            });
+
+            const correlationKeys = {};
+
+            correlationVariables.forEach((variable) => {
+                const { valueInfo, ...correlationKey } = task.variables.getTyped(variable);
+                correlationKeys[variable] = correlationKey;
+            });
+
+            console.log(processVariables);
+            console.log(correlationKeys);
+
+            const requestBody = {
+                messageName: messageName,
+                businessKey: key,
+                processVariables: processVariables,
+                correlationKeys: correlationKeys,
+            };
+
             await axios.post(`http://${camunda_endpoint}:8080/${rest_endpoint}/message`, requestBody);
             console.log(`Succesfully sent ${messageName} message`);
-        } catch (error) {
-            console.log(error);
+
+            await taskService.complete(task);
+        } catch (err) {
+            console.log(err);
         }
 
-        await taskService.complete(task);
     });
 }

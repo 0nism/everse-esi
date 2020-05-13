@@ -5,3 +5,4 @@ createMessageSendHandler('Service_Message_AcceptedRequest', 'Message_AcceptedReq
 createMessageSendHandler('Service_Message_RefusedRequest', 'Message_RefusedRequest', [], ['requestCorrelationId']);
 createMessageSendHandler('Service_Message_CampaignSucceeded', 'Message_CampaignSucceeded', [], ['requestCorrelationId']);
 createMessageSendHandler('Service_Message_CampaignFailed', 'Message_CampaignFailed', [], ['requestCorrelationId']);
+createMessageSendHandler('Service_Message_AssetFundingCompleted', 'Message_AssetFundingCompleted', [], ['requestCorrelationId']);
