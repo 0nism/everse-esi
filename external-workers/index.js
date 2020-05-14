@@ -1,5 +1,7 @@
 const { Client, Variables, logger } = require("camunda-external-task-client-js");
 
+const collaboration = require('./collaborationContract');
+
 /* DATABASE */
 const Datastore = require('nedb');
 const db = new Datastore({ filename: __dirname + '/../assets.db', autoload: true });
