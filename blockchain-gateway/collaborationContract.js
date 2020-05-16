@@ -11,9 +11,9 @@ const web3 = new Web3(provider);
 const everseCollaboration = new web3.eth.Contract(abi);
 
 exports.deploy = async () => {
-
+    const accounts = await web3.eth.getAccounts();
     const result = await everseCollaboration.deploy({ data: bytecode }).send({
-        from: '0xE3A6FB2Cfd696B59fF21F1e7190822062A25E780',
+        from: accounts[0],
         gas: 1000000,
     });
     return result._address;
@@ -28,8 +28,9 @@ exports.createdCollaborationId = async (collaborationName) => {
 }
 
 exports.registerActivity = async (collaborationInstanceID, collaborationName, taskName, taskExecutor) => {
+    const accounts = await web3.eth.getAccounts();
     return await everseContract.methods.registerActivity(collaborationInstanceID, collaborationName, taskName, taskExecutor).send({
-        from: '0xE3A6FB2Cfd696B59fF21F1e7190822062A25E780',
+        from: accounts[0],
     });
 }
 
