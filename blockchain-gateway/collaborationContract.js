@@ -14,7 +14,7 @@ exports.deploy = async () => {
     const accounts = await web3.eth.getAccounts();
     const result = await everseCollaboration.deploy({ data: bytecode }).send({
         from: accounts[0],
-        gas: 1000000,
+        gas: 3000000,
     });
     return result._address;
 }
@@ -31,6 +31,7 @@ exports.registerActivity = async (collaborationInstanceID, collaborationName, ta
     const accounts = await web3.eth.getAccounts();
     return await everseCollaboration.methods.registerActivity(collaborationInstanceID, collaborationName, taskName, taskExecutor).send({
         from: accounts[0],
+        gas: 1000000,
     });
 }
 

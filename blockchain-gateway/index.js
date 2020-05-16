@@ -9,16 +9,27 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.get('/collaborationId/:name', async (req, res) => {
-    const data = await collaboration.generateCollaborationId(req.params.name);
+app.get('/collaborationId/:businessKey', async (req, res) => {
+    const data = await collaboration.generateCollaborationId(req.params.businessKey);
     console.log(data);
     res.send(data);
 });
 
-app.get('/:id', (req, res) => {
+app.post('/:id', async (req, res) => {
+    const collaborationId = req.params.id;
+    const data = req.body;
+    if (!data.collaborationName || !data.taskName || !data.taskExecutor) {
+        return res.sendStatus(400);
+    }
+
+    const response = await collaboration.registerActivity(collaborationId, data.collaborationName, data.taskName, data.taskExecutor);
+    res.send(response);
+});
+
+app.get('/:id', async (req, res) => {
     const id = req.params.id;
 
-    const response = collaboration.getActivitiesFromInstanceId(id);
+    const response = await collaboration.getActivitiesFromInstanceId(id);
     res.send(response);
 });
 
