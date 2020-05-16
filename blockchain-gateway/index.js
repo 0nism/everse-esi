@@ -3,9 +3,24 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const collaboration = require('./collaborationContract');
 
-
-/* DATABASE */
 const contract = new Datastore({ filename: __dirname + '/../contract.db', autoload: true });
+
+const app = express();
+
+app.use(bodyParser.json());
+
+app.get('/collaborationId/:name', async (req, res) => {
+    const data = await collaboration.generateCollaborationId(req.params.name);
+    console.log(data);
+    res.send(data);
+});
+
+app.get('/:id', (req, res) => {
+    const id = req.params.id;
+
+    const response = collaboration.getActivitiesFromInstanceId(id);
+    res.send(response);
+});
 
 contract.find({}, async (error, documents) => {
     if (error) {
@@ -19,9 +34,17 @@ contract.find({}, async (error, documents) => {
                     return;
                 }
                 collaboration.setContractAddress(doc.address);
-            })
+            });
         } else {
             collaboration.setContractAddress(documents[0].address);
         }
     }
+
+    startWS();
 });
+
+const startWS = () => {
+    app.listen(3002, () => {
+        console.log('Blockchain gateway listening on port 3002');
+    });
+}

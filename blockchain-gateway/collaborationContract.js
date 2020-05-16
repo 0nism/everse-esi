@@ -23,17 +23,17 @@ exports.setContractAddress = (address) => {
     everseCollaboration.options.address = address;
 }
 
-exports.createdCollaborationId = async (collaborationName) => {
-    return await everseContract.methods.createCollaboration(collaborationName).call();
+exports.generateCollaborationId = async (collaborationName) => {
+    return await everseCollaboration.methods.createCollaboration(collaborationName).call();
 }
 
 exports.registerActivity = async (collaborationInstanceID, collaborationName, taskName, taskExecutor) => {
     const accounts = await web3.eth.getAccounts();
-    return await everseContract.methods.registerActivity(collaborationInstanceID, collaborationName, taskName, taskExecutor).send({
+    return await everseCollaboration.methods.registerActivity(collaborationInstanceID, collaborationName, taskName, taskExecutor).send({
         from: accounts[0],
     });
 }
 
 exports.getActivitiesFromInstanceId = async (instanceId) => {
-    return await everseContract.methods.get(instanceId).call();
+    return await everseCollaboration.methods.get(instanceId).call();
 }
