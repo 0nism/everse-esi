@@ -1,10 +1,8 @@
 const { Client, Variables, logger } = require("camunda-external-task-client-js");
 const Datastore = require('nedb');
-const collaboration = require('./collaborationContract');
 
 /* DATABASE */
 const db = new Datastore({ filename: __dirname + '/../assets.db', autoload: true });
-const contract = new Datastore({ filename: __dirname + '/../contract.db', autoload: true });
 
 contract.find({}, async (error, documents) => {
     if (error) {
