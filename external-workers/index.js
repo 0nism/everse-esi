@@ -1,5 +1,6 @@
 const { Client, Variables, logger } = require("camunda-external-task-client-js");
 const Datastore = require('nedb');
+const axios = require('axios');
 
 /* DATABASE */
 const db = new Datastore({ filename: __dirname + '/../assets.db', autoload: true });
@@ -22,6 +23,16 @@ client.subscribe('Service_SplitAsset', async function ({ task, taskService }) {
     const processVariables = new Variables();
     processVariables.set('tokenPrice', tokenPrice);
 
+    try {
+        await axios.post(`http://localhost:3002/${task.businessKey}`, {
+            collaborationName: "Everse Funding",
+            taskName: "Split asset in tokens",
+            taskExecutor: "Everse Platform"
+        });
+    } catch (error) {
+        console.log(error);
+    }
+
     await taskService.complete(task, processVariables);
 });
 
@@ -39,6 +50,15 @@ client.subscribe('Service_PublishAndRunCampaign', async function ({ task, taskSe
         if (err) {
             console.log(err);
             return;
+        }
+        try {
+            await axios.post(`http://localhost:3002/${task.businessKey}`, {
+                collaborationName: "Everse Funding",
+                taskName: "Publish and run campaign",
+                taskExecutor: "Everse Platform"
+            });
+        } catch (error) {
+            console.log(error);
         }
         await taskService.complete(task);
     });
@@ -60,6 +80,15 @@ client.subscribe('Service_RegisterPurchase', async function ({ task, taskService
                 console.log(`Token remaining: ${newTokens}`);
                 const processVariables = new Variables();
                 processVariables.set('tokensRemaining', newTokens !== 0);
+                try {
+                    await axios.post(`http://localhost:3002/${task.businessKey}`, {
+                        collaborationName: "Everse Funding",
+                        taskName: "Bought tokens",
+                        taskExecutor: "Everse Platform Token Sale"
+                    });
+                } catch (error) {
+                    console.log(error);
+                }
                 await taskService.complete(task, processVariables);
             });
         } else {
