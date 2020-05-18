@@ -67,7 +67,9 @@ app.post('/request', async (req, res) => {
     const request = req.body;
     const startProcessUrl = 'http://localhost:8080/rest/process-definition/key/FundingRequest/start';
 
-    const businessKey = uuidv4();
+    const idRequest = await axios.get(`http://localhost:3002/collaborationId/${uuidv4()}`);
+    const businessKey = idRequest.data;
+    console.log(businessKey);
     const requestCorrelationId = uuidv4();
 
     const startEventBody = {

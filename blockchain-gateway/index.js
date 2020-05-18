@@ -9,8 +9,8 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.get('/collaborationId/:businessKey', async (req, res) => {
-    const data = await collaboration.generateCollaborationId(req.params.businessKey);
+app.get('/collaborationId/:key', async (req, res) => {
+    const data = await collaboration.generateCollaborationId(req.params.key);
     console.log(data);
     res.send(data);
 });
