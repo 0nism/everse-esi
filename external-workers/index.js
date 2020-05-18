@@ -15,8 +15,9 @@ const client = new Client(config);
 
 client.subscribe('Service_SplitAsset', async function ({ task, taskService }) {
     const totalAmount = task.variables.get('amount');
-    const fee = 0.03; // 3% fee
-    const tokens = 3;
+    const fee = 0.03;
+    const tokens = task.variables.get('tokens');
+    console.log(`Number of tokens: ${tokens}`);
 
     const tokenPrice = (totalAmount * (1 + fee)) / tokens;
 
@@ -40,7 +41,7 @@ client.subscribe('Service_PublishAndRunCampaign', async function ({ task, taskSe
     const document = {
         assetName: task.variables.get('assetName'),
         amount: task.variables.get('amount'),
-        nTokens: 3,
+        nTokens: task.variables.get('tokens'),
         tokenPrice: task.variables.get('tokenPrice'),
         businessKey: task.businessKey,
         requestCorrelationId: task.variables.get('requestCorrelationId'),
