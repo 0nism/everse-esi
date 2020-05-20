@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
@@ -9,6 +10,7 @@ const Datastore = require('nedb');
 /* WEB SERVICE */
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/assets', (req, res) => {
