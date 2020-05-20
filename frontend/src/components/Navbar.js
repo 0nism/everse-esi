@@ -6,12 +6,12 @@ import {
     Nav,
     NavItem,
     NavLink,
-    InputGroup,
-    InputGroupAddon,
-    InputGroupText,
-    FormInput,
     Collapse
 } from "shards-react";
+
+import {
+    Link
+} from "react-router-dom";
 
 export default class NavExample extends React.Component {
     constructor(props) {
@@ -47,13 +47,13 @@ export default class NavExample extends React.Component {
     render() {
         return (
             <Navbar type="dark" theme="primary" expand="md">
-                <NavbarBrand href="#">EVERSE</NavbarBrand>
+                <NavbarBrand tag={Link} to="/">EVERSE</NavbarBrand>
                 <NavbarToggler onClick={this.toggleNavbar} />
 
                 <Collapse open={this.state.collapseOpen} navbar>
                     <Nav navbar>
                         <NavItem>
-                            <NavLink active href="#">
+                            <NavLink active tag={Link} to="/request">
                                 Request funds
                             </NavLink>
                         </NavItem>
