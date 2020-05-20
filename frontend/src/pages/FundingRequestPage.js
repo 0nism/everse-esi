@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, FormInput, FormGroup, Button } from "shards-react";
-
+import axios from 'axios';
 
 export default () => {
 
@@ -18,7 +18,19 @@ export default () => {
                     <label htmlFor="#assetName">Asset name</label>
                     <FormInput onChange={(e) => setAssetName(e.target.value)} value={assetName} id="#assetName" placeholder="Asset name" />
                 </FormGroup>
-                <Button onClick={() => console.log(`${assetName} : ${amount}`)}>Send Request</Button>
+                <Button onClick={async () => {
+                    try {
+                        await axios.post('http://localhost:3001/request', {
+                            amount,
+                            assetName
+                        });
+
+                        // TODO handle success
+                    } catch (err) {
+                        //TODO handle error
+                    }
+
+                }}>Send Request</Button>
             </Form>
         </div>
     );
