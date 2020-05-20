@@ -1,9 +1,13 @@
 import React from 'react';
+import "bootstrap/dist/css/bootstrap.min.css";
+import "shards-ui/dist/css/shards.min.css";
+
+import { Button } from "shards-react";
 
 function App() {
   return (
     <>
-      <p>Hello world!</p>
+      <Button>Hello world!</Button>
     </>
   );
 }
