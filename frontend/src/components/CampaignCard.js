@@ -10,12 +10,30 @@ import {
     FormInput
 } from "shards-react";
 
+import axios from 'axios';
+
 export default (props) => {
 
     const [tokens, setTokens] = useState("");
+    const [availableTokens, setAvailableTokens] = useState(props.data.nTokens);
 
     const buyTokens = async () => {
-        alert(tokens);
+        try {
+            await axios.post('http://localhost:3001/tokens',
+                {
+                    businessKey: props.data.businessKey,
+                    requestCorrelationId: props.data.requestCorrelationId,
+                    quantity: tokens,
+                    buyer: "Test User",
+                    assetId: props.data._id
+                }
+            );
+            setAvailableTokens(availableTokens - tokens);
+            alert('Purchased tokens correctly');
+        } catch (err) {
+            alert('Error processing request');
+        }
+
     }
 
     return (
@@ -23,7 +41,7 @@ export default (props) => {
             <CardBody>
                 <CardTitle>{props.data.assetName}</CardTitle>
                 <p>Token price: {props.data.tokenPrice} €</p>
-                <p>Available tokens: {props.data.nTokens}</p>
+                <p>Available tokens: {availableTokens}</p>
                 <InputGroup className="mb-2">
                     <InputGroupAddon type="prepend">
                         <InputGroupText>Tokens</InputGroupText>

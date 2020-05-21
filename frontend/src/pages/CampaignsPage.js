@@ -42,7 +42,7 @@ export default () => {
                 loading={loading}
             />
             {
-                !loading ? campaigns.map((campaignData) => <CampaignCard data={campaignData} key={campaignData._id} />) : null
+                !loading ? campaigns.filter((campaignData) => campaignData.nTokens > 0).map((campaignData) => <CampaignCard data={campaignData} key={campaignData._id} />) : null
             }
 
         </>
