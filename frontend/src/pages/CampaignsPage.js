@@ -7,7 +7,11 @@ import {
     Card,
     CardTitle,
     CardBody,
-    Button
+    Button,
+    InputGroup,
+    InputGroupText,
+    InputGroupAddon,
+    FormInput
 } from "shards-react";
 
 const override = css`
@@ -45,7 +49,14 @@ export default () => {
                     <CardTitle>{campaignData.assetName}</CardTitle>
                     <p>Token price: {campaignData.tokenPrice} €</p>
                     <p>Available tokens: {campaignData.nTokens}</p>
+                    <InputGroup className="mb-2">
+                        <InputGroupAddon type="prepend">
+                            <InputGroupText>Tokens</InputGroupText>
+                        </InputGroupAddon>
+                        <FormInput placeholder="Number of tokens to buy" />
+                    </InputGroup>
                     <Button>Buy tokens &rarr;</Button>
+
                 </CardBody>
             </Card>
         )
