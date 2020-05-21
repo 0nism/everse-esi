@@ -3,16 +3,7 @@ import axios from 'axios';
 import { css } from "@emotion/core";
 import CircleLoader from "react-spinners/CircleLoader";
 
-import {
-    Card,
-    CardTitle,
-    CardBody,
-    Button,
-    InputGroup,
-    InputGroupText,
-    InputGroupAddon,
-    FormInput
-} from "shards-react";
+import CampaignCard from "./../components/CampaignCard";
 
 const override = css`
   display: block;
@@ -42,26 +33,6 @@ export default () => {
 
     }, []);
 
-    const renderCampaignCard = (campaignData) => {
-        return (
-            <Card style={{ maxWidth: "35vw", minWidth: "300px", margin: "50px auto" }}>
-                <CardBody>
-                    <CardTitle>{campaignData.assetName}</CardTitle>
-                    <p>Token price: {campaignData.tokenPrice} €</p>
-                    <p>Available tokens: {campaignData.nTokens}</p>
-                    <InputGroup className="mb-2">
-                        <InputGroupAddon type="prepend">
-                            <InputGroupText>Tokens</InputGroupText>
-                        </InputGroupAddon>
-                        <FormInput placeholder="Number of tokens to buy" />
-                    </InputGroup>
-                    <Button>Buy tokens &rarr;</Button>
-
-                </CardBody>
-            </Card>
-        )
-    }
-
     return (
         <>
             <CircleLoader
@@ -71,7 +42,7 @@ export default () => {
                 loading={loading}
             />
             {
-                !loading ? campaigns.map((campaignData) => renderCampaignCard(campaignData)) : null
+                !loading ? campaigns.map((campaignData) => <CampaignCard data={campaignData} key={campaignData._id} />) : null
             }
 
         </>
