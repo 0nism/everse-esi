@@ -73,14 +73,16 @@ client.subscribe('Service_RegisterPurchase', async function ({ task, taskService
     db.findOne({ _id: assetId }, async (err, asset) => {
         if (err) {
             console.log('error');
+            return;
         }
         console.log(asset);
-        if (asset.nTokens >= quantity) {
+        if (asset.nTokens >= quantity && quantity != 0) {
             const newTokens = asset.nTokens - quantity;
             db.update({ _id: assetId }, { ...asset, nTokens: newTokens }, {}, async (err, result) => {
                 console.log(`Token remaining: ${newTokens}`);
                 const processVariables = new Variables();
                 processVariables.set('tokensRemaining', newTokens !== 0);
+                console.log('Registering on blockchain');
                 try {
                     await axios.post(`http://localhost:3002/${task.businessKey}`, {
                         collaborationName: "Everse Funding",

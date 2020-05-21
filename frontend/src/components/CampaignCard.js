@@ -41,14 +41,14 @@ export default (props) => {
             <CardBody>
                 <CardTitle>{props.data.assetName}</CardTitle>
                 <p>Token price: {props.data.tokenPrice} €</p>
-                <p>Available tokens: {availableTokens}</p>
+                {availableTokens > 0 ? <p>Available tokens: {availableTokens}</p> : <p>Asset Fully funded</p>}
                 <InputGroup className="mb-2">
                     <InputGroupAddon type="prepend">
                         <InputGroupText>Tokens</InputGroupText>
                     </InputGroupAddon>
                     <FormInput placeholder="Number of tokens to buy" type="number" value={tokens} onChange={(e) => setTokens(e.target.value)} />
                 </InputGroup>
-                <Button onClick={buyTokens} disabled={tokens === null || tokens === undefined || tokens === "" || tokens < 0 || tokens > props.data.nTokens}>Buy tokens &rarr;</Button>
+                <Button onClick={buyTokens} disabled={tokens === null || tokens === undefined || tokens === "" || tokens <= 0 || tokens > availableTokens}>Buy tokens &rarr;</Button>
 
             </CardBody>
         </Card>
