@@ -27,7 +27,7 @@ client.subscribe('Service_SplitAsset', async function ({ task, taskService }) {
     try {
         await axios.post(`http://localhost:3002/${task.businessKey}`, {
             collaborationName: "Everse Funding",
-            taskName: "Split asset in tokens",
+            taskName: `Split asset in ${tokens} tokens`,
             taskExecutor: "Everse Platform"
         });
     } catch (error) {
@@ -86,7 +86,7 @@ client.subscribe('Service_RegisterPurchase', async function ({ task, taskService
                 try {
                     await axios.post(`http://localhost:3002/${task.businessKey}`, {
                         collaborationName: "Everse Funding",
-                        taskName: "Bought tokens",
+                        taskName: `Bought ${quantity} tokens`,
                         taskExecutor: "Everse Platform Token Sale"
                     });
                 } catch (error) {
